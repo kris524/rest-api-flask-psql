@@ -1,6 +1,6 @@
-# from flask_sqlalchemy import SQLAlchemy
-from app import db
-from app import ma
+from app import db, ma
+from marshmallow_sqlalchemy import SQLAlchemySchema, auto_field
+from marshmallow import fields
 
 
 class DogOwner(db.Model):
@@ -24,18 +24,20 @@ class Dog(db.Model):
     def __repr__(self):
         return f'<breed "{self.breed}">'
 
-
-# class DogOwnerSchema(ma.SQLAlchemySchema):
-#     # class Meta:
-#     #     mode = DogOwner
-#     #     load_instance= True
-#     id = ma.auto_field()
-#     name = ma.auto_field()
-#     email = ma.auto_field()
+    def __init__(self, name, breed, dogowner_id) -> None:
+        self.name = name
+        self.breed = breed
+        self.dogowner_id = dogowner_id
 
 
-# class DogSchema(ma.Schema):
-#     id = ma.fields.Integer()
-#     name = ma.fields.String()
-#     breed = ma.fields.String()
-#     dogowner_id = ma.fields.Integer()
+class DogSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Dog
+
+
+class DogOwnerSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = DogOwner
+        include_relationships = True
+
+    dog = fields.Nested(DogSchema(), many=True)
